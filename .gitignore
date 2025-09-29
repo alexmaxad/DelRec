@@ -1,0 +1,13 @@
+Datasets
+.vscode
+wandb
+sanity_main.py
+outs_slurm
+exp
+sanity*
+wandb/
+__pycache__/
+*.py[cod]
+figures/*
+job.sh
+trash/

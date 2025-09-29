@@ -1,0 +1,11 @@
+DCLS==0.1.1
+matplotlib==3.10.0
+nbformat==5.10.4
+pandas==1.5.3
+plotly==6.3.0
+spikingjelly==0.0.0.0.15
+torch==2.7.0
+torchvision==0.22.0
+tqdm==4.67.1
+urllib3==2.4.0
+wandb==0.21.1
