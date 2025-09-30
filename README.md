@@ -1,6 +1,6 @@
 # DelRec
 
-This repository contains the code to reproduce the experiments presented in the article [DelRec: learning delays in recurrent spiking neural networks](link), by Alexandre Queant, Ulysse Rançon, Benoit R Cotterau and Timothée Masquelier.
+This repository contains the code to reproduce the experiments presented in the article [DelRec: learning delays in recurrent spiking neural networks](https://arxiv.org/abs/2509.24852), by Alexandre Queant, Ulysse Rançon, Benoit R Cotterau and Timothée Masquelier.
 
 ## Datasets 
 

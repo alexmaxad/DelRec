@@ -59,7 +59,7 @@ def train(train_loader, model, optimizer, epoch, device, config, perm, penalize_
             wandb.log({"spike_cost": spike_cost.item()})
 
         train_loss += loss.item()
-        correct += calc_metric_SSC(outputs, targets) # Change this
+        correct += calc_metric_SSC(outputs, targets) 
         total += targets.size(0)
 
         for opt in optimizer: opt.zero_grad()
