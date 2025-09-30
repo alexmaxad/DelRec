@@ -102,9 +102,92 @@ class axonal_recdel(base.MemoryModule):
             y = self.neuron_module.single_step_forward(x_seq[t] + self.dropout(rec_now))  # (B, N_out)
             
             y_masked = y.unsqueeze(2) * mask # (B, N_out, L)
-            X_rec = torch.matmul(W, y_masked)             # (B, N_in, L)
+            X_rec = torch.matmul(W, y_masked) # (B, N_in, L)
             
-            buffer[:, :, pointer]   = 0.0
+            buffer[:, :, pointer] = 0.0
+            pointer = (pointer + 1) % L
+
+            first_chunk = min(L - 1, L - pointer)
+            if first_chunk > 0:
+                buffer[:, :, pointer:pointer + first_chunk].add_(X_rec[:, :, 1:1 + first_chunk])
+            remaining = L - 1 - first_chunk
+            if remaining > 0:
+                buffer[:, :, 0:remaining].add_(X_rec[:, :, 1 + first_chunk:1 + first_chunk + remaining])
+
+            y_seq.append(y)
+            if self.store_v_seq:
+                v_seq.append(self.neuron_module.v)
+
+        self.x_seq = x_seq
+        
+        if self.store_v_seq:
+            self.v_seq = torch.stack(v_seq)
+
+        return torch.stack(y_seq)
+
+    def forward(self, x_seq: torch.Tensor):
+        if self.step_mode == 's':
+            return super().single_step_forward(x_seq)
+        else:
+            return self.multi_step_forward(x_seq)
+        
+class synaptic_recdel(axonal_recdel):
+    def __init__(
+        self,
+        config, 
+        neurons: int,
+        neuron_module: torch.nn.Module = neuron.LIFNode, 
+        ):
+
+        super().__init__(
+            config=config,
+            neurons=neurons,
+            neuron_module=neuron_module,
+        )
+        
+        # For sanity check :
+        # self.sigma = 0
+        
+        self.recurrent_delays = torch.nn.Parameter(torch.zeros(neurons, neurons), requires_grad=True) # (N, N)
+        self.init_recurrent_delays()
+        
+    def multi_step_forward(self, x_seq: torch.Tensor):
+        # x_seq: (T, B, N)
+        device = x_seq.device
+        dtype  = x_seq.dtype
+        T, B, N = x_seq.shape
+        y_seq = []
+
+        W = self.recurrent_weights.to(device=device, dtype=dtype)   # (N_in, N_out)
+        d = self.recurrent_delays.to(device=device, dtype=dtype)    # (N_in, N_out)
+
+        if self.use_sig_p:
+            s = 1.0 + 2.0 * self.sigma * torch.sigmoid(self.p_spread).to(device=device, dtype=dtype) # (N,)
+            s_max = s.max()
+            s = s.view(1, N, 1) # (N_out, 1)
+        else:
+            s = torch.tensor(1.0 + float(self.sigma), device=device, dtype=dtype)
+            s_max = s
+            
+        L = int(torch.ceil(1.0 + torch.max(d) + s_max).item()) + 1
+        support = torch.arange(L, device=device, dtype=dtype)              # (L,)
+
+        mask = (torch.clamp(s - torch.abs(support[None, None, :] - (1.0 + d)[:, :, None]), min=0.0) / (s * s)) # (N_in, N_out, L)
+
+        buffer = torch.zeros(B, N, L, device=device, dtype=dtype) # (B, N_in, L)
+        pointer = 0
+
+        if self.store_v_seq:
+            v_seq = []
+
+        for t in range(T):
+            rec_now = buffer[:, :, pointer]                       # (B, N_in)
+
+            y = self.neuron_module.single_step_forward(x_seq[t] + self.dropout(rec_now))  # (B, N_out)
+    
+            X_rec = torch.einsum('bo,io,iol->bil', y, W, mask) # (B, N_in, L)
+            
+            buffer[:, :, pointer] = 0.0
             pointer = (pointer + 1) % L
 
             first_chunk = min(L - 1, L - pointer)
