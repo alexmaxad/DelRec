@@ -256,8 +256,8 @@ class SNN_vanilla_recurrent(SNN_recurrent_delays):
                     layer.recurrent_delays.fill_(0.)  
                 layer.recurrent_delays.requires_grad_(False)  
                 
-                self.sigma = 0.
-                self.sigma_init = 0.
+                layer.sigma = 0.
+                layer.config.sigma_init = 0.
         
     def forward(self, x):
         return super().forward(x)
@@ -269,8 +269,8 @@ class SNN_fixed_recurrent_delays(SNN_recurrent_delays):
         for layer in self.layers:
             if isinstance(layer, axonal_recdel):
                 layer.recurrent_delays.requires_grad = False
-                self.sigma = 0.
-                self.sigma_init = 0.
+                layer.sigma = 0.
+                layer.config.sigma_init = 0.
         
     def forward(self, x):
         return super().forward(x)
