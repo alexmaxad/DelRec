@@ -207,7 +207,7 @@ if __name__ == "__main__":
         if model_class is SNN:
             widths = [u - 6*k for k in range(0, 8)]
         else:
-            # widths = [u - 6*k for k in range(0, 6)] CHECK TODO
+            # widths = [u - 6*k for k in range(0, 6)]
             widths = [u - 6*k for k in range(0, 1)]
         for hidden in widths:
             hidden_layers = [hidden, hidden]
