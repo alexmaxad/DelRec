@@ -182,15 +182,15 @@ if __name__ == "__main__":
     wandb.login(key=WANDB_KEY)
 
     model_classes = [
-        # SNN,
-        # SNN_recurrent_delays,
-        # SNN_feedforward_delays,
-        # SNN_recurrent_and_feedforward_delays,
-        # SNN_fixed_recurrent_delays,
+        SNN,
+        SNN_recurrent_delays,
+        SNN_feedforward_delays,
+        SNN_recurrent_and_feedforward_delays,
+        SNN_fixed_recurrent_delays,
         SNN_vanilla_recurrent,
     ]
 
-    seeds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    seeds = [0, 1, 2]
 
     # Base results directory
     master_results_dir = f'./exp/SHD_equiparams/{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}'
@@ -207,8 +207,7 @@ if __name__ == "__main__":
         if model_class is SNN:
             widths = [u - 6*k for k in range(0, 8)]
         else:
-            # widths = [u - 6*k for k in range(0, 6)]
-            widths = [u - 6*k for k in range(0, 1)]
+            widths = [u - 6*k for k in range(0, 6)]
         for hidden in widths:
             hidden_layers = [hidden, hidden]
             for seed in seeds:
