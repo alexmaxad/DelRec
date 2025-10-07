@@ -3,13 +3,13 @@ import torch.nn.functional as F
 import wandb
 
 from src.recurrent_neurons import axonal_recdel, recurrent_neuron
-from src.SHD.snn import dcls_module, modified_batchnorm, SNN_vanilla_recurrent
+from src.SHD.snn import dcls_module, modified_batchnorm, spike_registrator, SNN_vanilla_recurrent
 from src.utils import *
 
 def get_spike_cost(model, normalize="NT"):
     costs = []
     for m in model.modules():
-        if m.__class__.__name__ == "spike_registrator":
+        if isinstance(m, spike_registrator):
             spk = getattr(m, "spikes", None)
             if spk is None or not torch.is_tensor(spk):
                 continue
@@ -62,8 +62,8 @@ def train(train_loader, model, optimizer, epoch, device, config, penalize_spikes
         for opt in optimizer: opt.zero_grad()
         loss.backward()
         
-        if model.__class__.__name__ == 'SNN_vanilla_recurrent':
-            # Gradient clipping for recurrence of 1 :
+        if isinstance(model, SNN_vanilla_recurrent):
+            # Gradient clipping for recurrence of 1 
             max_grad_val = 1.0 
             for layer in model.layers:
                 if isinstance(layer, axonal_recdel):

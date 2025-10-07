@@ -43,7 +43,7 @@ class modified_batchnorm(layer.BatchNorm1d):
         
     def forward(self, x):
         assert x.dim() == 3 # (T, B, N)
-        return super().forward(x.unsqueeze(3)).squeeze() # We apply batchnorm to shape (T, B, N, 1)
+        return super().forward(x.unsqueeze(3)).squeeze(-1) # We apply batchnorm to shape (T, B, N, 1)
 
 class spike_registrator(torch.nn.Module):
     def __init__(self):
@@ -54,9 +54,6 @@ class spike_registrator(torch.nn.Module):
         assert x.dim() == 3 # (T, B, N)
         self.spikes = x.clone()
         return x
-
-    def reset(self):
-        self.spikes = []
 
 class SNN(torch.nn.Module):
     def __init__(self, config):
@@ -246,62 +243,6 @@ class SNN_recurrent_delays(SNN):
                     
         wandb.log(logs)
 
-# class SNN_vanilla_recurrent(SNN_recurrent_delays):
-#     def __init__(self, config):
-#         super().__init__(config)
-        
-#         layers = []
-#         dim_buffer = config.input_size
-        
-#         for idx, layer_dim in enumerate(config.hidden_layers):
-#             layers.append(torch.nn.Linear(dim_buffer, layer_dim, bias=config.bias)) # (T, B, N_in) -> (T, B, N_hidden)
-#             dim_buffer = layer_dim
-            
-#             if config.use_batch_norm:
-#                 layers.append(modified_batchnorm(layer_dim, step_mode='m'))
-            
-#             if config.no_delay_in_first_layer and idx == 0:
-#                 layers.append(config.neuron_module(
-#                 tau = config.tau,
-#                 decay_input = config.decay_input,
-#                 v_reset = config.v_reset,
-#                 v_threshold = config.v_threshold,
-#                 surrogate_function = config.surrogate_function,
-#                 detach_reset = config.detach_reset,
-#                 step_mode = config.step_mode,
-#                 backend = config.backend,
-#                 store_v_seq = config.store_v_seq,
-#                 )
-#                               )
-#             else:
-#                 layers.append(recurrent_neuron(config, layer_dim, config.neuron_module))
-                
-#             layers.append(spike_registrator())
-                
-#             layers.append(layer.Dropout(config.feedforward_dropout_rate, step_mode='m'))
-                
-#         layers.append(torch.nn.Linear(dim_buffer, config.output_size, bias=config.bias))
-
-#         layers.append(
-#             config.neuron_module(
-#             tau = config.tau,
-#             decay_input = config.decay_input,
-#             v_reset = config.v_reset,
-#             v_threshold = 1e8, # Infinite threshold
-#             surrogate_function = config.surrogate_function,
-#             detach_reset = config.detach_reset,
-#             step_mode = config.step_mode,
-#             backend = config.backend,
-#             store_v_seq = config.store_v_seq,
-#             )
-#         )
-    
-#         self.layers = torch.nn.Sequential(*layers)
-        
-#         self.init_weights()
-        
-#     def forward(self, x):
-#         return super().forward(x)
 
 class SNN_vanilla_recurrent(SNN_recurrent_delays):
     def __init__(self, config):
@@ -565,4 +506,35 @@ class SNN_recurrent_and_feedforward_delays(SNN_feedforward_delays, SNN_recurrent
         
     def log_params(self):
         SNN_feedforward_delays.log_params(self)
-        SNN_recurrent_delays.log_params(self)
+        logs = {}
+        for idx, layer in enumerate(self.layers):
+            if isinstance(layer, axonal_recdel):
+                    logs[f'sigma_rec{idx}'] = layer.sigma
+                    curr_pos_rec = layer.recurrent_delays.cpu().detach().numpy()
+                    logs[f'pos_rec{idx}'] = curr_pos_rec.mean()
+                    
+                    fig, ax = plt.subplots()
+                    ax.hist(curr_pos_rec.reshape(-1), bins=20)
+                    ax.set_title(f'Recurrent Delays Distribution Block {idx}')
+                    logs[f'pos_rec_hist_plot{idx}'] = wandb.Image(fig)
+                    plt.close(fig)
+                    
+                    rec_w = layer.recurrent_weights
+                    rec_w_mean = torch.abs(rec_w).mean()
+                    rec_w_grad_max = rec_w.grad.abs().max().item() if rec_w.grad is not None else 0.0
+
+                    logs.update({
+                        f'recurrent_w_{idx}': rec_w_mean,
+                        f'recurrent_w_grad_max_{idx}': rec_w_grad_max,
+                    })
+        
+                    rec_d = layer.recurrent_delays
+                    rec_d_grad_max = rec_d.grad.abs().max().item() if rec_d.grad is not None else 0.0
+
+                    logs[f'recurrent_delay_grad_max_{idx}'] = rec_d_grad_max
+                    
+                    if layer.use_sig_p:
+                        logs[f"p_spread_mean_{idx}"] = (2 * torch.sigmoid(layer.p_spread) * layer.sigma).detach().mean().item()
+                        logs[f"p_spread_std_{idx}"] = (2 * torch.sigmoid(layer.p_spread) * layer.sigma).detach().std().item()
+                    
+        wandb.log(logs)

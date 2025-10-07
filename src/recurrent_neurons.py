@@ -236,7 +236,7 @@ class synaptic_recdel(axonal_recdel):
         if self.use_sig_p:
             s = 1.0 + 2.0 * self.sigma * torch.sigmoid(self.p_spread).to(device=device, dtype=dtype) # (N,)
             s_max = s.max()
-            s = s.view(1, N, 1) # (N_out, 1)
+            s = s.view(1, N, 1) # (1, N_out, 1)
         else:
             s = torch.tensor(1.0 + float(self.sigma), device=device, dtype=dtype)
             s_max = s
