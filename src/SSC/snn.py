@@ -212,7 +212,8 @@ class SNN_vanilla_recurrent(SNN_recurrent_delays):
             if isinstance(layer, axonal_recdel):
                 with torch.no_grad():
                     layer.recurrent_delays.fill_(0.)  
-                layer.recurrent_delays.requires_grad_(False)  
+                
+                layer.recurrent_delays.requires_grad = False 
                 
                 layer.sigma = 0.
                 layer.config.sigma_init = 0.
@@ -226,7 +227,7 @@ class SNN_fixed_recurrent_delays(SNN_recurrent_delays):
         
         for layer in self.layers:
             if isinstance(layer, axonal_recdel):
-                layer.recurrent_delays.requires_grad_(False)  
+                layer.recurrent_delays.requires_grad = False 
                 layer.sigma = 0.
                 layer.config.sigma_init = 0.
         
