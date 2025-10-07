@@ -11,11 +11,12 @@ from src.SSC.trainer import *
 from src.SSC.snn import *
 from src.datasets import load_dataset
 
+os.environ["WANDB_MODE"] = "disabled"
 WANDB_KEY = None # Your key here
 
 if __name__ == "__main__":
     
-    seed_list = [0, 1, 2]  
+    seed_list = [0, 1] # [0, 1, 2]  
     test_accuracies = []
 
     for run_seed in seed_list:

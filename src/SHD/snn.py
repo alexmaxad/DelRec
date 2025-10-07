@@ -6,7 +6,7 @@ import math
 from spikingjelly.activation_based import layer
 from DCLS.construct.modules import Dcls1d
 
-from src.recurrent_neurons import axonal_recdel
+from src.recurrent_neurons import axonal_recdel, recurrent_neuron
 
 class dcls_module(Dcls1d):
     def __init__(
@@ -246,6 +246,63 @@ class SNN_recurrent_delays(SNN):
                     
         wandb.log(logs)
 
+# class SNN_vanilla_recurrent(SNN_recurrent_delays):
+#     def __init__(self, config):
+#         super().__init__(config)
+        
+#         layers = []
+#         dim_buffer = config.input_size
+        
+#         for idx, layer_dim in enumerate(config.hidden_layers):
+#             layers.append(torch.nn.Linear(dim_buffer, layer_dim, bias=config.bias)) # (T, B, N_in) -> (T, B, N_hidden)
+#             dim_buffer = layer_dim
+            
+#             if config.use_batch_norm:
+#                 layers.append(modified_batchnorm(layer_dim, step_mode='m'))
+            
+#             if config.no_delay_in_first_layer and idx == 0:
+#                 layers.append(config.neuron_module(
+#                 tau = config.tau,
+#                 decay_input = config.decay_input,
+#                 v_reset = config.v_reset,
+#                 v_threshold = config.v_threshold,
+#                 surrogate_function = config.surrogate_function,
+#                 detach_reset = config.detach_reset,
+#                 step_mode = config.step_mode,
+#                 backend = config.backend,
+#                 store_v_seq = config.store_v_seq,
+#                 )
+#                               )
+#             else:
+#                 layers.append(recurrent_neuron(config, layer_dim, config.neuron_module))
+                
+#             layers.append(spike_registrator())
+                
+#             layers.append(layer.Dropout(config.feedforward_dropout_rate, step_mode='m'))
+                
+#         layers.append(torch.nn.Linear(dim_buffer, config.output_size, bias=config.bias))
+
+#         layers.append(
+#             config.neuron_module(
+#             tau = config.tau,
+#             decay_input = config.decay_input,
+#             v_reset = config.v_reset,
+#             v_threshold = 1e8, # Infinite threshold
+#             surrogate_function = config.surrogate_function,
+#             detach_reset = config.detach_reset,
+#             step_mode = config.step_mode,
+#             backend = config.backend,
+#             store_v_seq = config.store_v_seq,
+#             )
+#         )
+    
+#         self.layers = torch.nn.Sequential(*layers)
+        
+#         self.init_weights()
+        
+#     def forward(self, x):
+#         return super().forward(x)
+
 class SNN_vanilla_recurrent(SNN_recurrent_delays):
     def __init__(self, config):
         super().__init__(config)
@@ -256,8 +313,8 @@ class SNN_vanilla_recurrent(SNN_recurrent_delays):
                     layer.recurrent_delays.fill_(0.)  
                 layer.recurrent_delays.requires_grad_(False)  
                 
-                self.sigma = 0.
-                self.sigma_init = 0.
+                layer.sigma = 0.
+                layer.config.sigma_init = 0.
         
     def forward(self, x):
         return super().forward(x)
@@ -268,9 +325,9 @@ class SNN_fixed_recurrent_delays(SNN_recurrent_delays):
         
         for layer in self.layers:
             if isinstance(layer, axonal_recdel):
-                layer.recurrent_delays.requires_grad = False
-                self.sigma = 0.
-                self.sigma_init = 0.
+                layer.recurrent_delays.requires_grad_(False)  
+                layer.sigma = 0.
+                layer.config.sigma_init = 0.
         
     def forward(self, x):
         return super().forward(x)

@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import wandb
 
-from src.recurrent_neurons import axonal_recdel
+from src.recurrent_neurons import axonal_recdel, recurrent_neuron
 from src.SHD.snn import dcls_module, modified_batchnorm, SNN_vanilla_recurrent
 from src.utils import *
 
@@ -164,8 +164,11 @@ def init_optim_sche(model, config):
             weights.append(m.recurrent_weights)
             positions.append(m.recurrent_delays)
             
-            # if hasattr(m, 'p_spread'):
-            #     positions.append(m.p_spread)
+            if hasattr(m, 'p_spread'):
+                positions.append(m.p_spread)
+            
+        elif isinstance(m, recurrent_neuron):
+            weights.append(m.recurrent_weights)
             
         elif isinstance(m, dcls_module):
             weights.append(m.weight)
