@@ -6,7 +6,7 @@ import math
 from spikingjelly.activation_based import layer
 from DCLS.construct.modules import Dcls1d
 
-from src.recurrent_neurons import axonal_recdel, recurrent_neuron
+from src.recurrent_neurons import axonal_recdel
 
 class dcls_module(Dcls1d):
     def __init__(

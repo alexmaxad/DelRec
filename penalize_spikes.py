@@ -35,7 +35,7 @@ def mean_spikes_on_test(model, test_loader, device):
     
     model.eval()
 
-    registrators = [m for m in model.modules() if m.__class__.__name__ == "spike_registrator"]
+    registrators = [m for m in model.modules() if isinstance(m, spike_registrator)]
     print(f'Found: {len(registrators)} module(s) named "spike_registrator" in {model.__class__.__name__}.')
     if not registrators:
         raise RuntimeError("No module named 'spike_registrator' found in model.")
@@ -217,8 +217,8 @@ if __name__ == "__main__":
         SNN,
         SNN_feedforward_delays,
         SNN_recurrent_delays,
-        SNN_fixed_recurrent_delays,
         SNN_recurrent_and_feedforward_delays,
+        SNN_fixed_recurrent_delays,
         SNN_vanilla_recurrent
     ]
 
