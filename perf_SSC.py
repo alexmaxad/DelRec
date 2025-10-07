@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 import json
 import os
+import numpy as np
 
 from configs.perf_SSC import Config
 from src.SSC.trainer import *
@@ -135,10 +136,6 @@ if __name__ == "__main__":
             if val_acc >= best_val_acc:
                 torch.save(state, os.path.join(config.results_dir, 'best.pth'))
                 best_val_acc = val_acc
-                    
-            if val_acc >= best_val_acc:
-                torch.save(state, os.path.join(config.results_dir, 'best.pth'))
-                best_val_acc = val_acc
 
             print(
                 'Val Epoch: [{}/{}], lr: {:.6f}, lr_pos: {:.6f}, acc: {:.4f}, best: {:.4f}'
@@ -171,6 +168,10 @@ if __name__ == "__main__":
             'final_test/acc':  final_test_acc,
             'final_test/loss': final_test_loss
         })
+        
+        test_accuracies.append(final_test_acc)
+        
+        wandb.finish()
         
     mean_acc = np.mean(test_accuracies)
     std_acc = np.std(test_accuracies)

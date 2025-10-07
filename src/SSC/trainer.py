@@ -3,13 +3,13 @@ import torch.nn.functional as F
 import wandb
 
 from src.recurrent_neurons import axonal_recdel
-from src.SSC.snn import dcls_module, modified_batchnorm
+from src.SSC.snn import dcls_module, modified_batchnorm, spike_registrator
 from src.utils import *
 
 def get_spike_cost(model, normalize="NT"):
     costs = []
     for m in model.modules():
-        if m.__class__.__name__ == "spike_registrator":
+        if isinstance(m, spike_registrator):
             spk = getattr(m, "spikes", None)
             if spk is None or not torch.is_tensor(spk):
                 continue

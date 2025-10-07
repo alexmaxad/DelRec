@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 import json
 import os
+import numpy as np
 
 from configs.perf_PSMNIST import Config
 from src.PSMNIST.trainer import *
@@ -160,6 +161,10 @@ if __name__ == "__main__":
             'final_test/acc':  final_test_acc,
             'final_test/loss': final_test_loss
         })
+        
+        test_accuracies.append(final_test_acc)
+        
+        wandb.finish()
         
     mean_acc = np.mean(test_accuracies)
     std_acc = np.std(test_accuracies)

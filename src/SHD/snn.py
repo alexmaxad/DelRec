@@ -43,7 +43,7 @@ class modified_batchnorm(layer.BatchNorm1d):
         
     def forward(self, x):
         assert x.dim() == 3 # (T, B, N)
-        return super().forward(x.unsqueeze(3)).squeeze() # We apply batchnorm to shape (T, B, N, 1)
+        return super().forward(x.unsqueeze(3)).squeeze(-1) # We apply batchnorm to shape (T, B, N, 1)
 
 class spike_registrator(torch.nn.Module):
     def __init__(self):
@@ -54,9 +54,6 @@ class spike_registrator(torch.nn.Module):
         assert x.dim() == 3 # (T, B, N)
         self.spikes = x.clone()
         return x
-
-    def reset(self):
-        self.spikes = []
 
 class SNN(torch.nn.Module):
     def __init__(self, config):
@@ -268,7 +265,7 @@ class SNN_fixed_recurrent_delays(SNN_recurrent_delays):
         
         for layer in self.layers:
             if isinstance(layer, axonal_recdel):
-                layer.recurrent_delays.requires_grad = False
+                layer.recurrent_delays.requires_grad_(False)  
                 layer.sigma = 0.
                 layer.config.sigma_init = 0.
         
@@ -508,4 +505,35 @@ class SNN_recurrent_and_feedforward_delays(SNN_feedforward_delays, SNN_recurrent
         
     def log_params(self):
         SNN_feedforward_delays.log_params(self)
-        SNN_recurrent_delays.log_params(self)
+        logs = {}
+        for idx, layer in enumerate(self.layers):
+            if isinstance(layer, axonal_recdel):
+                    logs[f'sigma_rec{idx}'] = layer.sigma
+                    curr_pos_rec = layer.recurrent_delays.cpu().detach().numpy()
+                    logs[f'pos_rec{idx}'] = curr_pos_rec.mean()
+                    
+                    fig, ax = plt.subplots()
+                    ax.hist(curr_pos_rec.reshape(-1), bins=20)
+                    ax.set_title(f'Recurrent Delays Distribution Block {idx}')
+                    logs[f'pos_rec_hist_plot{idx}'] = wandb.Image(fig)
+                    plt.close(fig)
+                    
+                    rec_w = layer.recurrent_weights
+                    rec_w_mean = torch.abs(rec_w).mean()
+                    rec_w_grad_max = rec_w.grad.abs().max().item() if rec_w.grad is not None else 0.0
+
+                    logs.update({
+                        f'recurrent_w_{idx}': rec_w_mean,
+                        f'recurrent_w_grad_max_{idx}': rec_w_grad_max,
+                    })
+        
+                    rec_d = layer.recurrent_delays
+                    rec_d_grad_max = rec_d.grad.abs().max().item() if rec_d.grad is not None else 0.0
+
+                    logs[f'recurrent_delay_grad_max_{idx}'] = rec_d_grad_max
+                    
+                    if layer.use_sig_p:
+                        logs[f"p_spread_mean_{idx}"] = (2 * torch.sigmoid(layer.p_spread) * layer.sigma).detach().mean().item()
+                        logs[f"p_spread_std_{idx}"] = (2 * torch.sigmoid(layer.p_spread) * layer.sigma).detach().std().item()
+                    
+        wandb.log(logs)
