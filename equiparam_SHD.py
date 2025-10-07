@@ -14,7 +14,7 @@ from src.SHD.snn import *  # SNN, SNN_feedforward_delays, SNN_recurrent_delays, 
 from src.datasets import load_dataset
 
 os.environ["WANDB_MODE"] = "disabled"
-WANDB_KEY = '675792ed1b1f46b8bc1badfed325d50c06fce9ba' # Your key here
+WANDB_KEY = None # Your key here
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
