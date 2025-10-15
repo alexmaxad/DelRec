@@ -101,6 +101,26 @@ WANDB_KEY = None # Your key here
 
 </details> 
 
+<details> <summary><strong>Figure notebook</strong></summary>
+
+The figure notebook `notebooks/figures.ipynb` requires runs with `equiparam_SHD.py` for the plot of accuracies on SHD as a function of the number of parameters, or `penalize_spikes.py` for the plot of accuracies on SHD as a function of mean firing rate. 
+
+When running these scripts without any modification to the results directory, you will have an `exp/` folder, with you experiments. Plug in the relative path of the `all_runs.csv` for the experiment you want to plot in the first line on the corresponding plotting cell. 
+
+For instance, if my equiparameter experiment is in the folder `exp/SHD_equiparams/{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}'`, I will set:
+
+```python
+csv_path = '../exp/SHD_equiparams/{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}/all_runs.csv'
+```
+as the `csv_path` in the two first cells of `notebooks/figures.ipynb`. If my spike penalization experiment is in the folder `exp/SHD_penalize_spikes/{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}'`, then I will set:
+
+```python
+csv_path = '../exp/SHD_penalize_spikes/{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}/all_runs.csv'
+```
+as the `csv_path` in the third cell of `notebooks/figures.ipynb`.
+
+</details> 
+
 <details> <summary><strong>Training time</strong></summary> 
 
 On a NVIDIA A100 GPU, the training time on one seed for the number of epochs detailed in the corresponding config is of the order of:

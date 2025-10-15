@@ -16,6 +16,7 @@ from src.SHD.snn import *
 from src.datasets import load_dataset
 from src.utils import reset_states
 
+os.environ["WANDB_MODE"] = "disabled"
 WANDB_KEY = None # Your key here
 
 if torch.cuda.is_available():

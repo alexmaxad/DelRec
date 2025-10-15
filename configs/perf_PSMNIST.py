@@ -6,6 +6,7 @@ class Config():
     ### Dataset ###
     
     dataset = 'PSMNIST'
+    datasets_path = 'Datasets/PSMNIST'
     seed = 0
     time_window = 784
     

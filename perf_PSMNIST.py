@@ -12,6 +12,7 @@ from src.PSMNIST.trainer import *
 from src.SSC.snn import *
 from src.datasets import load_dataset
 
+os.environ["WANDB_MODE"] = "disabled"
 WANDB_KEY = None # Your key here
 
 if __name__ == "__main__":
