@@ -5,7 +5,6 @@ from datetime import datetime
 
 import torch
 import pandas as pd
-import numpy as np
 import wandb
 
 from configs.equiparam_SHD import Config
