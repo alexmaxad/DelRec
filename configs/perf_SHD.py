@@ -45,7 +45,7 @@ class Config():
     v_reset = 0. # None if soft reset
     
     surrogate_function = surrogate.ATan(alpha = 5.0)
-    detach_reset = False # False
+    detach_reset = True
     decay_input=False
     
     step_mode = 'm'

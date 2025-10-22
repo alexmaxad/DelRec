@@ -17,7 +17,7 @@ WANDB_KEY = None # Your key here
 
 if __name__ == "__main__":
     
-    seed_list = [0, 1] # [0, 1, 2]  
+    seed_list = [0, 1, 2]  
     test_accuracies = []
 
     for run_seed in seed_list:

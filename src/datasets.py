@@ -10,7 +10,7 @@ from torch.utils.data import random_split
 from torch.distributions.binomial import Binomial
 from typing import Callable, Optional
 
-from spikingjelly.datasets.shd import SpikingHeidelbergDigits
+from src.SHD.SHD_downloader import SpikingHeidelbergDigits
 from spikingjelly.datasets import pad_sequence_collate
 
 from src.utils import seed_everything
