@@ -18,7 +18,7 @@ The datasets folder should have a subfolder `SSC/`containing `ssc_train.h5`, `ss
 <br>
 The Spiking Heidelberg Digits (SHD) dataset containing spoken digits from 0 to 9 in both English and German (20 classes). The train and test sets contain 8332 and 2088 examples respectively (there is no validation set provided).
 
-Just create a subfolder `SHD/`in the `Datasets/` folder, then the Spiking Jelly dataloader we use for this dataset will download and process the data automatically, as seen in https://github.com/Thvnvtos/SNN-delays.
+Just create a subfolder `SHD/`in the `Datasets/` folder, then the Spiking Jelly dataloader we use for this dataset will download and process the data automatically.
 
 </details>
 <br>
